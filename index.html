@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Geometry Dash</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<section id="game-frame">
+  <h2>Gioca a Geometry Dash 👇</h2>
+  <div class="game-box">
+      <p>Clicca il pulsante per avviare il gioco.</p>
+      <a href="https://geometrylitepc.io/" target="_blank" class="play-button">
+         ▶ AVVIA IL GIOCO
+      </a>
+  </div>
+</section>
+
+<h2>Mini Geometry Dash</h2>
+
+<p class="description">
+Preparati a entrare in un mondo di pura adrenalina con questo mini gioco ispirato a Geometry Dash ⚡🎮  
+Controlla il tuo cubo e metti alla prova i tuoi riflessi in una sfida senza fine dove ogni salto può fare la differenza tra vittoria e sconfitta.<br><br>
+
+Il gameplay è semplice da imparare ma difficile da padroneggiare: premi la barra spaziatrice per saltare ed evita gli ostacoli che arrivano sempre più velocemente. Con il passare del tempo, la difficoltà aumenta, gli ostacoli diventano più frequenti e la velocità cresce, mettendo alla prova concentrazione e tempismo.<br><br>
+
+La grafica minimalista ma brillante, unita agli effetti visivi e alla rotazione del personaggio, crea un’esperienza dinamica e coinvolgente. Ogni partita è diversa e ti spinge a migliorare il tuo record personale salvato automaticamente.<br><br>
+
+Riuscirai a resistere abbastanza a lungo da raggiungere il 100% e superare il tuo punteggio migliore? Premi SPAZIO e non fermarti… 🚀🔥
+</p>
+
+<canvas id="gameCanvas" width="800" height="300"></canvas>
+<p>Premi SPAZIO o TOCCA per saltare</p>
+
+<script>
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+
+/* ===== STATO GIOCO ===== */
+let gameStarted = false;
+let gameOver = false;
+
+/* ===== PLAYER ===== */
+let player = {
+  x: 80,
+  y: 200,
+  size: 30,
+  velocity: 0,
+  gravity: 0.75,
+  jump: -14,
+  grounded: false,
+  rotation: 0
+};
+
+/* ===== OSTACOLI E PARTICELLE ===== */
+let obstacles = [];
+let particles = [];
+
+let frame = 0;
+let score = 0;
+let speed = 4;
+let spawnRate = 120;
+let progress = 0;
+let highScore = localStorage.getItem("gdHighScore") || 0;
+
+/* ===== INPUT ===== */
+function handleJump() {
+  if (!gameStarted) {
+    gameStarted = true;
+    return;
+  }
+
+  if (player.grounded && !gameOver) {
+    player.velocity = player.jump;
+    player.grounded = false;
+
+    // particelle salto
+    for (let i=0; i<8; i++) {
+      particles.push({
+        x: player.x,
+        y: player.y + player.size,
+        size: Math.random()*5,
+        vx: Math.random()*4-2,
+        vy: Math.random()*-3,
+        life: 30
+      });
+    }
+  }
+
+  if (gameOver) restartGame();
+}
+
+document.addEventListener("keydown", e => {
+  if (e.code === "Space") { e.preventDefault(); handleJump(); }
+});
+
+canvas.addEventListener("click", handleJump);
+canvas.addEventListener("touchstart", handleJump);
+
+/* ===== OSTACOLI ===== */
+function createObstacle() {
+  let type = Math.random();
+
+  if (type < 0.7) {
+    obstacles.push({
+      x: canvas.width,
+      y: 200,
+      width: 25,
+      height: 50 + Math.random()*40
+    });
+  } else {
+    obstacles.push({
+      x: canvas.width,
+      y: 180,
+      width: 25,
+      height: 100
+    });
+  }
+}
+
+/* ===== RESTART ===== */
+function restartGame() {
+  obstacles = [];
+  particles = [];
+  score = 0;
+  speed = 4;
+  spawnRate = 120;
+  frame = 0;
+  progress = 0;
+  gameOver = false;
+  gameStarted = false;
+  player.y = 200;
+}
+
+/* ===== DIFFICOLTÀ ===== */
+function updateDifficulty() {
+  progress = Math.min(100, Math.floor(frame/20));
+  speed = 4 + progress/10;
+  spawnRate = Math.max(40, 120 - progress);
+}
+
+/* ===== EFFETTO SHAKE ===== */
+let shake = 0;
+
+/* ===== LOOP PRINCIPALE ===== */
+function update() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  if (shake>0) {
+    ctx.translate(Math.random()*10-5, Math.random()*10-5);
+    shake--;
+  }
+
+  // terreno
+  ctx.fillStyle = "#222";
+  ctx.fillRect(0,250,canvas.width,50);
+
+  if (!gameStarted) {
+    ctx.fillStyle = "white";
+    ctx.font = "28px Arial";
+    ctx.fillText("CLICCA O PREMI SPAZIO PER INIZIARE", 130, 150);
+    requestAnimationFrame(update);
+    return;
+  }
+
+  if (!gameOver) {
+    updateDifficulty();
+
+    // player
+    player.velocity += player.gravity;
+    player.y += player.velocity;
+
+    if (player.y >= 200) {
+      player.y = 200;
+      player.velocity = 0;
+      player.grounded = true;
+      player.rotation = 0;
+    } else {
+      player.rotation += 0.2;
+    }
+
+    ctx.save();
+    ctx.translate(player.x+player.size/2, player.y+player.size/2);
+    ctx.rotate(player.rotation);
+    ctx.fillStyle = "#00ffff";
+    ctx.shadowBlur = 20;
+    ctx.shadowColor = "#00ffff";
+    ctx.fillRect(-player.size/2,-player.size/2,player.size,player.size);
+    ctx.restore();
+    ctx.shadowBlur=0;
+
+    // ostacoli
+    if (frame % spawnRate === 0) createObstacle();
+    obstacles.forEach((obs,i) => {
+      obs.x -= speed;
+
+      ctx.fillStyle = "#ff00ff";
+      ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+
+      // collisione
+      if (player.x < obs.x+obs.width && player.x+player.size > obs.x &&
+          player.y < obs.y+obs.height && player.y+player.size > obs.y) {
+        gameOver = true;
+        shake = 15;
+        if (score > highScore) { highScore=score; localStorage.setItem("gdHighScore", highScore);}
+      }
+
+      if (obs.x+obs.width<0) { obstacles.splice(i,1); score++; }
+    });
+
+    // particelle
+    particles.forEach((p,i)=>{
+      p.x+=p.vx; p.y+=p.vy; p.life--;
+      ctx.fillStyle="#00ffff";
+      ctx.fillRect(p.x,p.y,p.size,p.size);
+      if(p.life<=0) particles.splice(i,1);
+    });
+
+    frame++;
+  }
+
+  // HUD
+  ctx.fillStyle="white";
+  ctx.font="18px Arial";
+  ctx.fillText("Score: "+score,20,30);
+  ctx.fillText("Record: "+highScore,20,55);
+
+  // barra progresso
+  ctx.fillStyle="#555";
+  ctx.fillRect(200,20,400,15);
+  ctx.fillStyle="#00ffff";
+  ctx.fillRect(200,20,progress*4,15);
+  ctx.fillStyle="white";
+  ctx.fillText(progress+"%",610,32);
+
+  if(gameOver){
+    ctx.fillStyle="red";
+    ctx.font="40px Arial";
+    ctx.fillText("GAME OVER",270,140);
+    ctx.font="20px Arial";
+    ctx.fillText("CLICCA O PREMI SPAZIO PER RIPARTIRE",210,180);
+  }
+
+  requestAnimationFrame(update);
+}
+
+update();
+</script>
+
+</body>
+</html>

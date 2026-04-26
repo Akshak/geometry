@@ -1,0 +1,132 @@
+/* RESET + BASE */
+body {
+  margin: 0;
+  background: radial-gradient(circle at center, #0a0a0a, #000);
+  overflow-x: hidden;
+  overflow-y: auto;
+  min-height: 100vh;
+  font-family: Arial, sans-serif;
+  color: white;
+  text-align: center;
+}
+
+/* SFONDO DINAMICO (effetto luce) */
+body::before {
+  content: "";
+  position: fixed;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, #00ffff22, #ff00ff22, #00ffcc22);
+  animation: bgMove 10s linear infinite;
+  z-index: -1;
+}
+
+@keyframes bgMove {
+  0% { transform: translate(0,0); }
+  100% { transform: translate(-25%, -25%); }
+}
+
+/* QUADRATO MIGLIORATO */
+.square {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  background: #00ffff;
+  box-shadow: 0 0 20px #00ffff, 0 0 40px #00ffff;
+  animation: move 6s linear infinite;
+  pointer-events: none;
+  border-radius: 6px;
+  opacity: 0.7;
+}
+
+/* TRIANGOLO MIGLIORATO */
+.triangle {
+  position: absolute;
+  width: 0;
+  height: 0;
+  border-left: 25px solid transparent;
+  border-right: 25px solid transparent;
+  border-bottom: 50px solid #ff00ff;
+  filter: drop-shadow(0 0 10px #ff00ff);
+  animation: float 3s ease-in-out infinite alternate;
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+/* ANIMAZIONI */
+@keyframes move {
+  0% { left: 110%; top: 40%; transform: rotate(0deg) scale(1); }
+  50% { transform: rotate(180deg) scale(1.2); }
+  100% { left: -60px; top: 60%; transform: rotate(360deg) scale(1); }
+}
+
+@keyframes float {
+  from { transform: translateY(0px) rotate(0deg); }
+  to { transform: translateY(60px) rotate(10deg); }
+}
+
+/* SEZIONE GIOCO */
+#game-frame {
+  padding: 25px;
+  background: rgba(20, 20, 20, 0.8);
+  color: #fff;
+  border-bottom: 2px solid #00ffff;
+  box-shadow: 0 0 20px #00ffff33;
+}
+
+#game-frame h2 {
+  font-size: 2em;
+  margin-bottom: 10px;
+  text-shadow: 0 0 10px #00ffff;
+}
+
+/* CANVAS SUPER GLOW */
+#gameCanvas {
+  display: block;
+  margin: 30px auto;
+  background: #111;
+  border: 3px solid #00ffff;
+  box-shadow: 
+    0 0 10px #00ffff,
+    0 0 30px #00ffff,
+    inset 0 0 20px #00ffff22;
+  border-radius: 10px;
+  transition: 0.3s;
+}
+
+/* EFFETTO HOVER */
+#gameCanvas:hover {
+  box-shadow: 
+    0 0 20px #00ffff,
+    0 0 50px #00ffff,
+    inset 0 0 30px #00ffff44;
+}
+
+/* TESTO */
+.description {
+  max-width: 800px;
+  margin: 20px auto;
+  line-height: 1.7;
+  font-size: 17px;
+  color: #ddd;
+}
+
+/* TITOLI */
+h2 {
+  text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff;
+}
+
+/* SCROLLBAR CUSTOM */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #00ffff;
+  border-radius: 10px;
+  box-shadow: 0 0 10px #00ffff;
+}
+
+::-webkit-scrollbar-track {
+  background: #111;
+}
